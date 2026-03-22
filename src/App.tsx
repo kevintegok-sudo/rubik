@@ -55,6 +55,104 @@ const rotateMatrix = (matrix: Color[][], clockwise: boolean = true): Color[][] =
   return result;
 };
 
+const getMovedCube = (prev: Record<FaceName, Color[][]>, face: FaceName, clockwise: boolean = true): Record<FaceName, Color[][]> => {
+  const next: Record<FaceName, Color[][]> = JSON.parse(JSON.stringify(prev));
+  
+  // Rotate the face itself
+  next[face] = rotateMatrix(prev[face], clockwise);
+
+  // Rotate adjacent edges
+  if (face === 'front') {
+    const topRow = [...prev.top[2]];
+    const rightCol = [prev.right[0][0], prev.right[1][0], prev.right[2][0]];
+    const bottomRow = [...prev.bottom[0]];
+    const leftCol = [prev.left[0][2], prev.left[1][2], prev.left[2][2]];
+
+    if (clockwise) {
+      next.right[0][0] = topRow[0]; next.right[1][0] = topRow[1]; next.right[2][0] = topRow[2];
+      next.bottom[0][0] = rightCol[2]; next.bottom[0][1] = rightCol[1]; next.bottom[0][2] = rightCol[0];
+      next.left[0][2] = bottomRow[0]; next.left[1][2] = bottomRow[1]; next.left[2][2] = bottomRow[2];
+      next.top[2][0] = leftCol[2]; next.top[2][1] = leftCol[1]; next.top[2][2] = leftCol[0];
+    } else {
+      next.left[0][2] = topRow[2]; next.left[1][2] = topRow[1]; next.left[2][2] = topRow[0];
+      next.bottom[0][0] = leftCol[0]; next.bottom[0][1] = leftCol[1]; next.bottom[0][2] = leftCol[2];
+      next.right[0][0] = bottomRow[2]; next.right[1][0] = bottomRow[1]; next.right[2][0] = bottomRow[0];
+      next.top[2][0] = rightCol[0]; next.top[2][1] = rightCol[1]; next.top[2][2] = rightCol[2];
+    }
+  } else if (face === 'back') {
+    const topRow = [...prev.top[0]];
+    const leftCol = [prev.left[0][0], prev.left[1][0], prev.left[2][0]];
+    const bottomRow = [...prev.bottom[2]];
+    const rightCol = [prev.right[0][2], prev.right[1][2], prev.right[2][2]];
+
+    if (clockwise) {
+      next.left[0][0] = topRow[2]; next.left[1][0] = topRow[1]; next.left[2][0] = topRow[0];
+      next.bottom[2][0] = leftCol[0]; next.bottom[2][1] = leftCol[1]; next.bottom[2][2] = leftCol[2];
+      next.right[0][2] = bottomRow[2]; next.right[1][2] = bottomRow[1]; next.right[2][2] = bottomRow[0];
+      next.top[0][0] = rightCol[0]; next.top[0][1] = rightCol[1]; next.top[0][2] = rightCol[2];
+    } else {
+      next.right[0][2] = topRow[0]; next.right[1][2] = topRow[1]; next.right[2][2] = topRow[2];
+      next.bottom[2][0] = rightCol[2]; next.bottom[2][1] = rightCol[1]; next.bottom[2][2] = rightCol[0];
+      next.left[0][0] = bottomRow[0]; next.left[1][0] = bottomRow[1]; next.left[2][0] = bottomRow[2];
+      next.top[0][0] = leftCol[2]; next.top[0][1] = leftCol[1]; next.top[0][2] = leftCol[0];
+    }
+  } else if (face === 'top') {
+    const frontRow = [...prev.front[0]];
+    const leftRow = [...prev.left[0]];
+    const backRow = [...prev.back[0]];
+    const rightRow = [...prev.right[0]];
+    if (clockwise) {
+      next.front[0] = rightRow; next.left[0] = frontRow; next.back[0] = leftRow; next.right[0] = backRow;
+    } else {
+      next.front[0] = leftRow; next.left[0] = backRow; next.back[0] = rightRow; next.right[0] = frontRow;
+    }
+  } else if (face === 'bottom') {
+    const frontRow = [...prev.front[2]];
+    const rightRow = [...prev.right[2]];
+    const backRow = [...prev.back[2]];
+    const leftRow = [...prev.left[2]];
+    if (clockwise) {
+      next.front[2] = leftRow; next.right[2] = frontRow; next.back[2] = rightRow; next.left[2] = backRow;
+    } else {
+      next.front[2] = rightRow; next.right[2] = backRow; next.back[2] = leftRow; next.left[2] = frontRow;
+    }
+  } else if (face === 'right') {
+    const frontCol = [prev.front[0][2], prev.front[1][2], prev.front[2][2]];
+    const topCol = [prev.top[0][2], prev.top[1][2], prev.top[2][2]];
+    const backCol = [prev.back[2][0], prev.back[1][0], prev.back[0][0]];
+    const bottomCol = [prev.bottom[0][2], prev.bottom[1][2], prev.bottom[2][2]];
+    if (clockwise) {
+      next.top[0][2] = frontCol[0]; next.top[1][2] = frontCol[1]; next.top[2][2] = frontCol[2];
+      next.back[0][0] = topCol[2]; next.back[1][0] = topCol[1]; next.back[2][0] = topCol[0];
+      next.bottom[0][2] = backCol[0]; next.bottom[1][2] = backCol[1]; next.bottom[2][2] = backCol[2];
+      next.front[0][2] = bottomCol[0]; next.front[1][2] = bottomCol[1]; next.front[2][2] = bottomCol[2];
+    } else {
+      next.bottom[0][2] = frontCol[0]; next.bottom[1][2] = frontCol[1]; next.bottom[2][2] = frontCol[2];
+      next.back[0][0] = bottomCol[2]; next.back[1][0] = bottomCol[1]; next.back[2][0] = bottomCol[0];
+      next.top[0][2] = backCol[0]; next.top[1][2] = backCol[1]; next.top[2][2] = backCol[2];
+      next.front[0][2] = topCol[0]; next.front[1][2] = topCol[1]; next.front[2][2] = topCol[2];
+    }
+  } else if (face === 'left') {
+    const frontCol = [prev.front[0][0], prev.front[1][0], prev.front[2][0]];
+    const topCol = [prev.top[0][0], prev.top[1][0], prev.top[2][0]];
+    const backCol = [prev.back[2][2], prev.back[1][2], prev.back[0][2]];
+    const bottomCol = [prev.bottom[0][0], prev.bottom[1][0], prev.bottom[2][0]];
+    if (clockwise) {
+      next.bottom[0][0] = frontCol[0]; next.bottom[1][0] = frontCol[1]; next.bottom[2][0] = frontCol[2];
+      next.back[0][2] = bottomCol[2]; next.back[1][2] = bottomCol[1]; next.back[2][2] = bottomCol[0];
+      next.top[0][0] = backCol[0]; next.top[1][0] = backCol[1]; next.top[2][0] = backCol[2];
+      next.front[0][0] = topCol[0]; next.front[1][0] = topCol[1]; next.front[2][0] = topCol[2];
+    } else {
+      next.top[0][0] = frontCol[0]; next.top[1][0] = frontCol[1]; next.top[2][0] = frontCol[2];
+      next.back[0][2] = topCol[2]; next.back[1][2] = topCol[1]; next.back[2][2] = topCol[0];
+      next.bottom[0][0] = backCol[0]; next.bottom[1][0] = backCol[1]; next.bottom[2][0] = backCol[2];
+      next.front[0][0] = bottomCol[0]; next.front[1][0] = bottomCol[1]; next.front[2][0] = bottomCol[2];
+    }
+  }
+
+  return next;
+};
+
 export default function App() {
   const [cube, setCube] = useState(INITIAL_STATE);
   const [moves, setMoves] = useState(0);
@@ -87,94 +185,28 @@ export default function App() {
   }, []);
 
   // Move Logic
-  const performMove = (face: FaceName, clockwise: boolean = true) => {
+  const performMove = useCallback((face: FaceName, clockwise: boolean = true) => {
     if (isSolved) return;
-    if (!isActive && moves === 0) setIsActive(true);
+    setIsActive(true);
 
-    setCube((prev) => {
-      const next = JSON.parse(JSON.stringify(prev));
-      
-      // Rotate the face itself
-      next[face] = rotateMatrix(prev[face], clockwise);
-
-      // Rotate adjacent edges
-      // This is a simplified version of Rubik's logic for a 3x3
-      // In a real implementation, we'd map the 3 stickers on each adjacent face
-      if (face === 'front') {
-        const topRow = [...prev.top[2]];
-        const rightCol = [prev.right[0][0], prev.right[1][0], prev.right[2][0]];
-        const bottomRow = [...prev.bottom[0]];
-        const leftCol = [prev.left[0][2], prev.left[1][2], prev.left[2][2]];
-
-        if (clockwise) {
-          // Top -> Right
-          next.right[0][0] = topRow[0]; next.right[1][0] = topRow[1]; next.right[2][0] = topRow[2];
-          // Right -> Bottom
-          next.bottom[0][0] = rightCol[2]; next.bottom[0][1] = rightCol[1]; next.bottom[0][2] = rightCol[0];
-          // Bottom -> Left
-          next.left[0][2] = bottomRow[0]; next.left[1][2] = bottomRow[1]; next.left[2][2] = bottomRow[2];
-          // Left -> Top
-          next.top[2][0] = leftCol[2]; next.top[2][1] = leftCol[1]; next.top[2][2] = leftCol[0];
-        } else {
-          // Top -> Left
-          next.left[0][2] = topRow[2]; next.left[1][2] = topRow[1]; next.left[2][2] = topRow[0];
-          // Left -> Bottom
-          next.bottom[0][0] = leftCol[0]; next.bottom[0][1] = leftCol[1]; next.bottom[0][2] = leftCol[2];
-          // Bottom -> Right
-          next.right[0][0] = bottomRow[2]; next.right[1][0] = bottomRow[1]; next.right[2][0] = bottomRow[0];
-          // Right -> Top
-          next.top[2][0] = rightCol[0]; next.top[2][1] = rightCol[1]; next.top[2][2] = rightCol[2];
-        }
-      }
-      // Note: For a full game, all 6 faces need their edge rotation logic.
-      // For this demo, I'll implement a few key ones or a simplified "shuffle" that works.
-      // Let's implement the rest of the faces for a complete experience.
-      
-      if (face === 'top') {
-        const frontRow = [...prev.front[0]];
-        const leftRow = [...prev.left[0]];
-        const backRow = [...prev.back[0]];
-        const rightRow = [...prev.right[0]];
-        if (clockwise) {
-          next.front[0] = rightRow; next.left[0] = frontRow; next.back[0] = leftRow; next.right[0] = backRow;
-        } else {
-          next.front[0] = leftRow; next.left[0] = backRow; next.back[0] = rightRow; next.right[0] = frontRow;
-        }
-      }
-
-      if (face === 'right') {
-        const frontCol = [prev.front[0][2], prev.front[1][2], prev.front[2][2]];
-        const topCol = [prev.top[0][2], prev.top[1][2], prev.top[2][2]];
-        const backCol = [prev.back[2][0], prev.back[1][0], prev.back[0][0]];
-        const bottomCol = [prev.bottom[0][2], prev.bottom[1][2], prev.bottom[2][2]];
-        if (clockwise) {
-          next.top[0][2] = frontCol[0]; next.top[1][2] = frontCol[1]; next.top[2][2] = frontCol[2];
-          next.back[0][0] = topCol[2]; next.back[1][0] = topCol[1]; next.back[2][0] = topCol[0];
-          next.bottom[0][2] = backCol[0]; next.bottom[1][2] = backCol[1]; next.bottom[2][2] = backCol[2];
-          next.front[0][2] = bottomCol[0]; next.front[1][2] = bottomCol[1]; next.front[2][2] = bottomCol[2];
-        } else {
-          next.bottom[0][2] = frontCol[0]; next.bottom[1][2] = frontCol[1]; next.bottom[2][2] = frontCol[2];
-          next.back[0][0] = bottomCol[2]; next.back[1][0] = bottomCol[1]; next.back[2][0] = bottomCol[0];
-          next.top[0][2] = backCol[0]; next.top[1][2] = backCol[1]; next.top[2][2] = backCol[2];
-          next.front[0][2] = topCol[0]; next.front[1][2] = topCol[1]; next.front[2][2] = topCol[2];
-        }
-      }
-
-      if (checkSolved(next)) {
-        setIsSolved(true);
-        confetti({
-          particleCount: 150,
-          spread: 70,
-          origin: { y: 0.6 },
-          colors: Object.values(COLORS)
-        });
-      }
-      return next;
-    });
+    setCube((prev) => getMovedCube(prev, face, clockwise));
     setMoves((m) => m + 1);
-  };
+  }, [isSolved]);
 
-  const scramble = () => {
+  // Check for solution after moves
+  useEffect(() => {
+    if (moves > 0 && !isSolved && checkSolved(cube)) {
+      setIsSolved(true);
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: Object.values(COLORS)
+      });
+    }
+  }, [cube, moves, isSolved, checkSolved]);
+
+  const scramble = useCallback(() => {
     setIsSolved(false);
     setMoves(0);
     setTime(0);
@@ -183,80 +215,23 @@ export default function App() {
     const faces: FaceName[] = ['front', 'top', 'right', 'left', 'bottom', 'back'];
     let currentCube = JSON.parse(JSON.stringify(INITIAL_STATE));
 
-    // Helper to perform move on a state object
-    const applyMove = (state: any, face: FaceName, clockwise: boolean) => {
-      const next = JSON.parse(JSON.stringify(state));
-      next[face] = rotateMatrix(state[face], clockwise);
-
-      // Simplified edge logic for all faces to ensure scramble is "real"
-      // (In a production app, we'd have a full mapping for all 12 edges)
-      // For this kid's app, we'll focus on the 3 main axes
-      if (face === 'front') {
-        const topRow = [...state.top[2]];
-        const rightCol = [state.right[0][0], state.right[1][0], state.right[2][0]];
-        const bottomRow = [...state.bottom[0]];
-        const leftCol = [state.left[0][2], state.left[1][2], state.left[2][2]];
-        if (clockwise) {
-          next.right[0][0] = topRow[0]; next.right[1][0] = topRow[1]; next.right[2][0] = topRow[2];
-          next.bottom[0][0] = rightCol[2]; next.bottom[0][1] = rightCol[1]; next.bottom[0][2] = rightCol[0];
-          next.left[0][2] = bottomRow[0]; next.left[1][2] = bottomRow[1]; next.left[2][2] = bottomRow[2];
-          next.top[2][0] = leftCol[2]; next.top[2][1] = leftCol[1]; next.top[2][2] = leftCol[0];
-        } else {
-          next.left[0][2] = topRow[2]; next.left[1][2] = topRow[1]; next.left[2][2] = topRow[0];
-          next.bottom[0][0] = leftCol[0]; next.bottom[0][1] = leftCol[1]; next.bottom[0][2] = leftCol[2];
-          next.right[0][0] = bottomRow[2]; next.right[1][0] = bottomRow[1]; next.right[2][0] = bottomRow[0];
-          next.top[2][0] = rightCol[0]; next.top[2][1] = rightCol[1]; next.top[2][2] = rightCol[2];
-        }
-      }
-      if (face === 'top') {
-        const frontRow = [...state.front[0]];
-        const leftRow = [...state.left[0]];
-        const backRow = [...state.back[0]];
-        const rightRow = [...state.right[0]];
-        if (clockwise) {
-          next.front[0] = rightRow; next.left[0] = frontRow; next.back[0] = leftRow; next.right[0] = backRow;
-        } else {
-          next.front[0] = leftRow; next.left[0] = backRow; next.back[0] = rightRow; next.right[0] = frontRow;
-        }
-      }
-      if (face === 'right') {
-        const frontCol = [state.front[0][2], state.front[1][2], state.front[2][2]];
-        const topCol = [state.top[0][2], state.top[1][2], state.top[2][2]];
-        const backCol = [state.back[2][0], state.back[1][0], state.back[0][0]];
-        const bottomCol = [state.bottom[0][2], state.bottom[1][2], state.bottom[2][2]];
-        if (clockwise) {
-          next.top[0][2] = frontCol[0]; next.top[1][2] = frontCol[1]; next.top[2][2] = frontCol[2];
-          next.back[0][0] = topCol[2]; next.back[1][0] = topCol[1]; next.back[2][0] = topCol[0];
-          next.bottom[0][2] = backCol[0]; next.bottom[1][2] = backCol[1]; next.bottom[2][2] = backCol[2];
-          next.front[0][2] = bottomCol[0]; next.front[1][2] = bottomCol[1]; next.front[2][2] = bottomCol[2];
-        } else {
-          next.bottom[0][2] = frontCol[0]; next.bottom[1][2] = frontCol[1]; next.bottom[2][2] = frontCol[2];
-          next.back[0][0] = bottomCol[2]; next.back[1][0] = bottomCol[1]; next.back[2][0] = bottomCol[0];
-          next.top[0][2] = backCol[0]; next.top[1][2] = backCol[1]; next.top[2][2] = backCol[2];
-          next.front[0][2] = topCol[0]; next.front[1][2] = topCol[1]; next.front[2][2] = topCol[2];
-        }
-      }
-      return next;
-    };
-
-    // Perform 15 random moves on the 3 implemented axes
-    const activeFaces: FaceName[] = ['front', 'top', 'right'];
-    for (let i = 0; i < 15; i++) {
-      const randomFace = activeFaces[Math.floor(Math.random() * activeFaces.length)];
+    // Perform 20 random moves on all axes
+    for (let i = 0; i < 20; i++) {
+      const randomFace = faces[Math.floor(Math.random() * faces.length)];
       const clockwise = Math.random() > 0.5;
-      currentCube = applyMove(currentCube, randomFace, clockwise);
+      currentCube = getMovedCube(currentCube, randomFace, clockwise);
     }
     
     setCube(currentCube);
-  };
+  }, []);
 
-  const reset = () => {
+  const reset = useCallback(() => {
     setCube(INITIAL_STATE);
     setMoves(0);
     setTime(0);
     setIsActive(false);
     setIsSolved(false);
-  };
+  }, []);
 
   const formatTime = (s: number) => {
     const mins = Math.floor(s / 60);
@@ -273,7 +248,7 @@ export default function App() {
         case 'f': performMove('front'); break;
         case 'u': performMove('top'); break;
         case 'r': performMove('right'); break;
-        case 'l': performMove('left', false); break;
+        case 'l': performMove('left'); break;
         case 'd': performMove('bottom'); break;
         case 'b': performMove('back'); break;
         case 'arrowleft': setRotation(r => ({ ...r, y: r.y - 45 })); break;
